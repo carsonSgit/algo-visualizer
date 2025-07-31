@@ -35,5 +35,5 @@ pub fn main() void {
     populate_array();
     std.debug.print("{d}\n", .{unsorted_array});
     bubble_sort();
-    //std.debug.print("{d}\n", .{unsorted_array});
+    std.debug.print("{d}\n", .{unsorted_array});
 }
