@@ -129,7 +129,7 @@ export const SortVisualizer: React.FC = () => {
               <CardDescription>{currentStepData.message}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-end justify-center gap-[2px] h-80 bg-muted rounded-md p-4 overflow-hidden">
+              <div className="flex items-end justify-center gap-[2px] h-80 bg-muted p-4 overflow-hidden">
                 {currentStepData.array.map((value, idx) => {
                   const isComparing = currentStepData.comparing.includes(idx);
                   const isSwapped = currentStepData.swapped.includes(idx);
@@ -144,7 +144,7 @@ export const SortVisualizer: React.FC = () => {
                   return (
                     <div
                       key={idx}
-                      className={`flex-1 ${bgColor} transition-all duration-100 rounded-t flex items-end justify-center text-[10px] text-foreground`}
+                      className={`flex-1 ${bgColor} transition-all duration-100 flex items-end justify-center text-[10px] text-foreground`}
                       style={{ height: `${height}%` }}
                       title={`${value}`}
                     >
