@@ -1,38 +1,66 @@
 const std = @import("std");
+const io_utils = @import("io_utils.zig");
 
-var unsorted_array: [5]u8 = undefined;
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
 
-pub fn populate_array() void {
-    var prng = std.Random.DefaultPrng.init(42);
-    var random = prng.random();
-    for (0..unsorted_array.len) |i| {
-        unsorted_array[i] = random.int(u8) % 10;
-    }
-}
+    const parsed = try io_utils.readInput(allocator);
+    defer parsed.deinit();
+    
+    var arr = try allocator.alloc(i64, parsed.value.array.len);
+    defer allocator.free(arr);
+    @memcpy(arr, parsed.value.array);
 
-pub fn selection_sort() void {
-    // temp variables for swapping
-    var temp: u8 = 0;
-    var min_index: u8 = 0;
+    var step_num: usize = 0;
+    var sorted_indices = std.ArrayList(usize).init(allocator);
+    defer sorted_indices.deinit();
 
-    for (0..unsorted_array.len - 1) |i| {
-        // min_index is the smallest index in the unsorted array, default to i as selection sort searches for the smallest element within the unsorted array
-        min_index = @as(u8, @intCast(i));
-        // search for the smallest element in the unsorted array, starting from i + 1 all the way till the end of the array
-        for (i + 1..unsorted_array.len) |j| {
-            if (unsorted_array[min_index] > unsorted_array[j]) {
-                min_index = @as(u8, @intCast(j));
+    try io_utils.printStep(arr, &.{}, &.{}, sorted_indices.items, step_num, "Starting Selection Sort");
+    step_num += 1;
+
+    var i: usize = 0;
+    while (i < arr.len - 1) : (i += 1) {
+        var min_index = i;
+        
+        var msg_buf: [100]u8 = undefined;
+        const start_msg = try std.fmt.bufPrint(&msg_buf, "Current minimum is {d} at {d}", .{arr[min_index], min_index});
+        
+        // Visualize starting scan
+        try io_utils.printStep(arr, &.{i}, &.{}, sorted_indices.items, step_num, start_msg);
+        step_num += 1;
+
+        var j: usize = i + 1;
+        while (j < arr.len) : (j += 1) {
+            const compare_indices = [_]usize{min_index, j};
+            const compare_msg = try std.fmt.bufPrint(&msg_buf, "Comparing minimum ({d}) with {d}", .{arr[min_index], arr[j]});
+            try io_utils.printStep(arr, &compare_indices, &.{}, sorted_indices.items, step_num, compare_msg);
+            step_num += 1;
+
+            if (arr[j] < arr[min_index]) {
+                min_index = j;
+                const new_min_msg = try std.fmt.bufPrint(&msg_buf, "Found new minimum: {d}", .{arr[min_index]});
+                try io_utils.printStep(arr, &.{min_index}, &.{}, sorted_indices.items, step_num, new_min_msg);
+                step_num += 1;
             }
         }
-        temp = unsorted_array[i];
-        unsorted_array[i] = unsorted_array[min_index];
-        unsorted_array[min_index] = temp;
-    }
-}
 
-pub fn main() void {
-    populate_array();
-    std.debug.print("{d}\n", .{unsorted_array});
-    selection_sort();
-    std.debug.print("{d}\n", .{unsorted_array});
+        if (min_index != i) {
+            const temp = arr[i];
+            arr[i] = arr[min_index];
+            arr[min_index] = temp;
+            
+            const swap_indices = [_]usize{i, min_index};
+            const swap_msg = try std.fmt.bufPrint(&msg_buf, "Swapping {d} and {d}", .{arr[i], arr[min_index]});
+            try io_utils.printStep(arr, &.{}, &swap_indices, sorted_indices.items, step_num, swap_msg);
+            step_num += 1;
+        }
+
+        try sorted_indices.append(i);
+    }
+    
+    // Last element is sorted
+    try sorted_indices.append(arr.len - 1);
+    try io_utils.printStep(arr, &.{}, &.{}, sorted_indices.items, step_num, "Sorting complete!");
 }

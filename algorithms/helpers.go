@@ -45,12 +45,27 @@ func HandleSort(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result SortResult
+	var err error
 
+	// Map frontend algorithm names to Zig runner names
+	zigAlgoName := ""
 	switch strings.ToLower(req.Algorithm) {
 	case "bubble":
-		result = BubbleSort(req.Array)
+		zigAlgoName = "Bubble Sort"
+	case "insertion":
+		zigAlgoName = "Insertion Sort"
+	case "selection":
+		zigAlgoName = "Selection Sort"
 	default:
-		result = BubbleSort(req.Array)
+		// Default to Bubble Sort if unknown
+		zigAlgoName = "Bubble Sort"
+	}
+
+	result, err = RunZigAlgorithm(zigAlgoName, req.Array)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
